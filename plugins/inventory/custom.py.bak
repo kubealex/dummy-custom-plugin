@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+from ansible.plugins.inventory import BaseInventoryPlugin
+
+class InventoryModule(BaseInventoryPlugin):
+    NAME = "custom"
+    INVENTORY_FILE_SUFFIXES = ("custom.yml", "custom.yaml")
+
+    def parse(self, inventory, loader, host_list, cache=False):
+        super(InventoryModule, self).parse(inventory, loader, host_list)
+
+
+        # Clear existing hosts and groups
+        self.inventory.hosts.clear()
+
+        # Define your custom inventory data here
+        inventory_data = {
+            'all': {
+                'hosts': ['host1', 'host2'],
+                'vars': {
+                    'ansible_user': 'user',
+                    'ansible_ssh_private_key_file': '/path/to/private/key',
+                }
+            },
+            '_meta': {
+                'hostvars': {
+                    'host1': {
+                        'ansible_host': '192.168.1.1',
+                    },
+                    'host2': {
+                        'ansible_host': '192.168.1.2',
+                    }
+                }
+            }
+        }
+
+        # Update the inventory with the custom data
+        for host_group, group_data in inventory_data.items():
+            if host_group == '_meta':
+                continue
+
+            hosts = group_data.get('hosts', [])
+            vars_dict = group_data.get('vars', {})
+
+            inventory.add_group(host_group)
+            inventory.set_variable(host_group, 'hosts', hosts)
+            inventory.set_variable(host_group, 'vars', vars_dict)
+
+        # Update host variables
+        for host, hostvars in inventory_data['_meta']['hostvars'].items():
+            inventory.add_host(host)
+            inventory.set_variable(host, 'vars', hostvars)
+            inventory.set_variable(host, 'vars', hostvars)
+
+    def verify_file(self, path):
+        # This method is required for the inventory plugin
+        return True
+
