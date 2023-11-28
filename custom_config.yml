@@ -1,2 +1,2 @@
 plugin: custom
-group: coast
+group_by_ip: True

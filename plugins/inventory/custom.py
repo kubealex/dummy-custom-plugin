@@ -1,5 +1,6 @@
 from ansible.plugins.inventory import BaseInventoryPlugin
 from ansible.errors import AnsibleParserError
+import ipaddress
 
 DOCUMENTATION = r'''
     name: custom
@@ -11,7 +12,7 @@ DOCUMENTATION = r'''
           description: Name of the plugin
           required: true
           choices: ['custom']
-      group:
+      group_by_ip:
         description: Groups to add
         required: false
 '''
@@ -27,7 +28,7 @@ class InventoryModule(BaseInventoryPlugin):
         super(InventoryModule, self).parse(inventory, loader, path, cache)
         self._read_config_data(path)
         try:
-            group = self.get_option('group')
+            group_by_ip = self.get_option('group_by_ip')
         except KeyError as kerr:
             raise AnsibleParserError(f'Missing required option on the configuration file: {path}', kerr)
 
@@ -35,7 +36,7 @@ class InventoryModule(BaseInventoryPlugin):
 
         inventory_data = {
             'all': {
-                'hosts': ['host1', 'host2'],
+                'hosts': ['router1', 'router2', 'router3', 'firewall1', 'firewall2'],
                 'vars': {
                     'ansible_user': 'user',
                     'ansible_ssh_private_key_file': '/path/to/private/key',
@@ -43,23 +44,36 @@ class InventoryModule(BaseInventoryPlugin):
             },
             '_meta': {
                 'hostvars': {
-                    'host1': {
+                    'router1': {
                         'ansible_host': '192.168.1.1',
                     },
-                    'host2': {
+                    'router2': {
                         'ansible_host': '192.168.1.2',
+                    },
+                    'router3': {
+                        'ansible_host': '192.168.2.3',
+                    },
+                    'firewall1': {
+                        'ansible_host': '192.168.1.1',
+                    },
+                    'firewall2': {
+                        'ansible_host': '192.168.2.2',
                     }
                 }
             }
         }
 
-        if group != 'all':
-            for host, hostvars in inventory_data['_meta']['hostvars'].items():
-                inventory.add_host(host)
-                inventory.set_variable(host, 'vars', hostvars)
-                inventory.add_group(group)
-                inventory.add_child(group, host)  # Add host to the specified group
 
+        for host, hostvars in inventory_data['_meta']['hostvars'].items():
+            inventory.add_host(host)
+            inventory.set_variable(host, 'vars', hostvars)
+            if group_by_ip:
+                if ipaddress.ip_address(hostvars['ansible_host']) in ipaddress.ip_network('192.168.1.0/24'):
+                    inventory.add_group("Group A")
+                    inventory.add_child("Group A", host)  # Add host to the specified group
+                else:
+                    inventory.add_group("Group B")
+                    inventory.add_child("Group B", host)  # Add host to the specified group
     def verify_file(self, path):
         valid = False
         if super(InventoryModule, self).verify_file(path):
