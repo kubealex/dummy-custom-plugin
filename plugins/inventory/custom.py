@@ -58,6 +58,9 @@ class InventoryModule(BaseInventoryPlugin):
                     },
                     'firewall2': {
                         'ansible_host': '192.168.2.2',
+                    },
+                    'rhel9-vm': {
+                        'ansible_host': 'rhel9-vm.rh-lab.labs',
                     }
                 }
             }
@@ -71,9 +74,12 @@ class InventoryModule(BaseInventoryPlugin):
                 if ipaddress.ip_address(hostvars['ansible_host']) in ipaddress.ip_network('192.168.1.0/24'):
                     inventory.add_group("Group A")
                     inventory.add_child("Group A", host)  # Add host to the specified group
-                else:
+                elif ipaddress.ip_address(hostvars['ansible_host']) in ipaddress.ip_network('192.168.1.0/24'):
                     inventory.add_group("Group B")
                     inventory.add_child("Group B", host)  # Add host to the specified group
+                else:
+                    inventory.add_group("Group C")
+                    inventory.add_child("Group C", host)  # Add host to the specified group
     def verify_file(self, path):
         valid = False
         if super(InventoryModule, self).verify_file(path):
