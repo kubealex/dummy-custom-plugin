@@ -1,6 +1,6 @@
 ---
 - name: test
-  hosts: all
+  hosts: "{{ group_name }}"
   tasks:
     - name: Debug
       debug:
