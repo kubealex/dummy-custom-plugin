@@ -36,7 +36,7 @@ class InventoryModule(BaseInventoryPlugin):
 
         inventory_data = {
             'all': {
-                'hosts': ['router1', 'router2', 'router3', 'firewall1', 'firewall2'],
+                'hosts': ['router1', 'router2', 'router3', 'firewall1', 'firewall2', 'rhel9-vm'],
                 'vars': {
                     'ansible_user': 'user',
                     'ansible_ssh_private_key_file': '/path/to/private/key',
