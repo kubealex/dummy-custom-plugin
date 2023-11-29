@@ -66,17 +66,17 @@ class InventoryModule(BaseInventoryPlugin):
             }
         }
 
-
         for host, hostvars in inventory_data['_meta']['hostvars'].items():
             inventory.add_host(host)
             inventory.set_variable(host, 'vars', hostvars)
             if group_by_ip:
-                if ipaddress.ip_address(hostvars['ansible_host']) in ipaddress.ip_network('192.168.1.0/24'):
-                    inventory.add_group("Group A")
-                    inventory.add_child("Group A", host)  # Add host to the specified group
-                elif ipaddress.ip_address(hostvars['ansible_host']) in ipaddress.ip_network('192.168.1.0/24'):
-                    inventory.add_group("Group B")
-                    inventory.add_child("Group B", host)  # Add host to the specified group
+                if hostvars['ansible_host'] != "rhel9-vm.rh-lab.labs":
+                    if ipaddress.ip_address(hostvars['ansible_host']) in ipaddress.ip_network('192.168.1.0/24'):
+                        inventory.add_group("Group A")
+                        inventory.add_child("Group A", host)  # Add host to the specified group
+                    if ipaddress.ip_address(hostvars['ansible_host']) in ipaddress.ip_network('192.168.2.0/24'):
+                        inventory.add_group("Group B")
+                        inventory.add_child("Group B", host)  # Add host to the specified group
                 else:
                     inventory.add_group("Group C")
                     inventory.add_child("Group C", host)  # Add host to the specified group
